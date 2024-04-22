@@ -7,6 +7,8 @@ local P = function(tbl)
 	return print(vim.inspect(tbl))
 end
 
+local configCache = nil
+
 local M = {}
 
 --get the path to the file to store the tokens
@@ -33,6 +35,10 @@ end
 --Read the contents of the token store file and decript it.
 --returns TokenStore[]
 local getConfigFileContents = function()
+	if configCache ~= nil then
+		return configCache
+	end
+
 	local p = getConfigFilePath()
 
 	if not p:exists() then
@@ -51,7 +57,8 @@ local getConfigFileContents = function()
 	-- local a=vim.json.decode(decryptedObj.result)
 	-- P(a)
 	if decryptedObj.success == true then
-		return vim.json.decode(decryptedObj.result)
+		configCache = vim.json.decode(decryptedObj.result)
+		return configCache
 	else
 		print("Could not open token config file: " .. decryptedObj.errorMessage)
 		return nil
@@ -64,6 +71,7 @@ local writeConfigFile = function(config)
 	local jsonStr = vim.json.encode(config)
 	local encryptedObj = Enrypt.encrypt(jsonStr)
 	if encryptedObj.success == true then
+		configCache = config
 		p:write(encryptedObj.result, "w")
 		--print(' \nconfig file saved')
 	else
@@ -191,6 +199,43 @@ local showProfilePicker = function(message, callback)
 	Dialog.option(message, options, callback)
 end
 
+--- Find the active profile object.
+-- @return The profile object.  Will be nil of the object is not found
+local getActiveProfileObject = function()
+	local activeProfile = M.getActiveProfile()
+
+	if activeProfile == nil then
+		return nil
+	end
+
+	local config = getConfigFileContents()
+
+	if config == nil or config.profiles == nil then
+		return nil
+	end
+
+	local _, profile = findProfile(config, activeProfile)
+	return profile
+end
+
+local updateProfileObject = function(profileObj)
+	local config = getConfigFileContents()
+
+	if config == nil then
+		return
+	end
+
+	local idx, _ = findProfile(config, profileObj.profile)
+
+	if idx == 0 then
+		return
+	end
+
+	config.profiles[idx] = profileObj
+
+	writeConfigFile(config)
+end
+
 --add a profile to the stored tokens
 M.addProfile = function()
 	setTokens()
@@ -246,6 +291,53 @@ M.getTokens = function()
 		print("Profile " .. config.activeProfile .. " not found.")
 		return nil
 	end
+end
+
+--- Create a custom value for the active profile
+-- The app parameter allows key value pairs to be namespaced to a paticular application
+-- @param app - The application name the value is for
+-- @param key - The value key
+-- @param value - the Value
+M.setCustomValue = function(app, key, value)
+	local profileObj = getActiveProfileObject()
+
+	if profileObj == nil then
+		return
+	end
+
+	if profileObj.customValues == nil then
+		profileObj.customValues = {}
+	end
+
+	if profileObj.customValues[app] == nil then
+		profileObj.customValues[app] = {}
+	end
+
+	profileObj.customValues[app][key] = value
+
+	updateProfileObject(profileObj)
+end
+
+--- Get the custom value.
+-- @return The custom value.  Nil if the custom value does not exist
+M.getCustomValue = function(app, key)
+	local profileObj = getActiveProfileObject()
+	if profileObj == nil then
+		return nil
+	end
+
+	if profileObj.customValues == nil or profileObj.customValues[app] == nil then
+		return nil
+	end
+
+	return profileObj.customValues[app][key]
+end
+
+--- Remove the custom value
+-- @param app
+-- @param key
+M.removeCustomValue = function(app, key)
+	M.setCustomValue(app, key, nil)
 end
 
 M.removeProfile = function(profile)

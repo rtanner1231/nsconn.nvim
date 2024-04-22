@@ -91,6 +91,24 @@ setActiveProfile(profile)
 -- @return A list of profiles
 getProfileList()
 
+--- Create a custom value for the active profile
+-- The app parameter allows key value pairs to be namespaced to a paticular application
+-- @param app - The application name the value is for
+-- @param key - The value key
+-- @param value - the Value
+setCustomValue(app,key,value)
+
+--- Get the custom value.
+-- @param app
+-- @param key
+-- @return The custom value.  Nil if the custom value does not exist
+getCustomValue(app,key)
+
+--- Remove the custom value
+-- @param app
+-- @param key
+removeCustomValue(app,key)
+
 --- Remove a profile
 --@param profile The profile to remove
 removeProfile(profile)

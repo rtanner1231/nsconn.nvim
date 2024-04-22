@@ -35,6 +35,22 @@ M.addProfile = TokenConfig.addProfile
 -- Prompts user before executing
 M.resetTokens = TokenConfig.resetTokens
 
+--- Create a custom value for the active profile
+-- The app parameter allows key value pairs to be namespaced to a paticular application
+-- @param app - The application name the value is for
+-- @param key - The value key
+-- @param value - the Value
+M.setCustomValue = TokenConfig.setCustomValue
+
+--- Get the custom value.
+-- @return The custom value.  Nil if the custom value does not exist
+M.getCustomValue = TokenConfig.getCustomValue
+
+--- Remove the custom value
+-- @param app
+-- @param key
+M.removeCustomValue = TokenConfig.removeCustomValue
+
 --- Make a request to Netsuite.
 -- @param url
 -- @param method
