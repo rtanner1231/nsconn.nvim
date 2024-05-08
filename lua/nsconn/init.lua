@@ -13,7 +13,7 @@ M.getActiveProfile = TokenConfig.getActiveProfile
 M.showDeleteProfilePicker = TokenConfig.showDeleteProfilePicker
 
 --- Show a dialog to select the active picker.
-M.showSelectProfilePicker = TokenConfig.showDeleteProfilePicker
+M.showSelectProfilePicker = TokenConfig.showSelectProfilePicker()
 
 --- Set the active profile.
 -- @param profile
